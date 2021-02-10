@@ -224,7 +224,8 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Features.Operations.Reindex
         public async Task GivenNewSearchParamCreatedBeforeResourcesToBeIndexed_WhenReindexJobCompleted_ThenResourcesAreIndexedAndParamIsSearchable()
         {
             const string searchParamName = "foo";
-            SearchParameter searchParam = await CreateSearchParam(searchParamName);
+            const string searchParamCode = "fooCode";
+            SearchParameter searchParam = await CreateSearchParam(searchParamName, searchParamCode);
 
             const string sampleName1 = "searchIndicesPatient1";
             const string sampleName2 = "searchIndicesPatient2";
@@ -237,7 +238,7 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Features.Operations.Reindex
             SearchResult searchResults = await _searchService.Value.SearchAsync("Patient", queryParams, CancellationToken.None);
 
             // Confirm that the search parameter "foo" is marked as unsupported
-            Assert.Equal(searchParamName, searchResults.UnsupportedSearchParameters.FirstOrDefault()?.Item1);
+            Assert.Equal(searchParamCode, searchResults.UnsupportedSearchParameters.FirstOrDefault()?.Item1);
 
             // When search parameters aren't recognized, they are ignored
             // Confirm that "foo" is dropped from the query string and all patients are returned
@@ -277,14 +278,15 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Features.Operations.Reindex
             await CreatePatientResource(sampleName2);
 
             const string searchParamName = "foo";
-            SearchParameter searchParam = await CreateSearchParam(searchParamName);
+            const string searchParamCode = "fooCode";
+            SearchParameter searchParam = await CreateSearchParam(searchParamName, searchParamCode);
 
             // Create the query <fhirserver>/Patient?foo=searchIndicesPatient1
             var queryParams = new List<Tuple<string, string>>() { new Tuple<string, string>("foo", sampleName1) };
             SearchResult searchResults = await _searchService.Value.SearchAsync("Patient", queryParams, CancellationToken.None);
 
             // Confirm that the search parameter "foo" is marked as unsupported
-            Assert.Equal(searchParamName, searchResults.UnsupportedSearchParameters.FirstOrDefault()?.Item1);
+            Assert.Equal(searchParamCode, searchResults.UnsupportedSearchParameters.FirstOrDefault()?.Item1);
 
             // When search parameters aren't recognized, they are ignored
             // Confirm that "foo" is dropped from the query string and all patients are returned
@@ -360,7 +362,7 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Features.Operations.Reindex
             return response;
         }
 
-        private async Task<SearchParameter> CreateSearchParam(string searchParamName)
+        private async Task<SearchParameter> CreateSearchParam(string searchParamName, string searchParamCode)
         {
             var searchParam = new SearchParameter()
             {
@@ -369,14 +371,10 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Features.Operations.Reindex
                 Base = new List<ResourceType?>() { ResourceType.Patient },
                 Expression = "Patient.name",
                 Name = searchParamName,
+                Code = searchParamCode,
             };
 
             _searchParameterDefinitionManager.AddNewSearchParameters(new List<ITypedElement> { searchParam.ToTypedElement() });
-
-            // _searchParameterDefinitionManager.UrlLookup.TryAdd(searchParam.Url, searchParam);
-            // _searchParameterDefinitionManager.TypeLookup["Patient"].TryAdd(searchParamName, searchParam);
-
-            // _searchParameterDefinitionManager.UpdateSearchParameterHashMap();
 
             // Add the search parameter to the datastore
             await _searchParameterStatusManager.UpdateSearchParameterStatusAsync(new List<string> { searchParam.Url.ToString() }, SearchParameterStatus.Supported);
