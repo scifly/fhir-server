@@ -234,7 +234,7 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Features.Operations.Reindex
             await CreatePatientResource(sampleName2);
 
             // Create the query <fhirserver>/Patient?foo=searchIndicesPatient1
-            var queryParams = new List<Tuple<string, string>>() { new Tuple<string, string>("foo", sampleName1) };
+            var queryParams = new List<Tuple<string, string>>() { new Tuple<string, string>(searchParamCode, sampleName1) };
             SearchResult searchResults = await _searchService.Value.SearchAsync("Patient", queryParams, CancellationToken.None);
 
             // Confirm that the search parameter "foo" is marked as unsupported
@@ -282,7 +282,7 @@ namespace Microsoft.Health.Fhir.Tests.Integration.Features.Operations.Reindex
             SearchParameter searchParam = await CreateSearchParam(searchParamName, searchParamCode);
 
             // Create the query <fhirserver>/Patient?foo=searchIndicesPatient1
-            var queryParams = new List<Tuple<string, string>>() { new Tuple<string, string>("foo", sampleName1) };
+            var queryParams = new List<Tuple<string, string>>() { new Tuple<string, string>(searchParamCode, sampleName1) };
             SearchResult searchResults = await _searchService.Value.SearchAsync("Patient", queryParams, CancellationToken.None);
 
             // Confirm that the search parameter "foo" is marked as unsupported
