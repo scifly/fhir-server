@@ -113,6 +113,13 @@ namespace Microsoft.Health.Fhir.SqlServer.Features.Storage
             _searchParamUriToId.Add(new Uri(searchParamUri), searchParamId);
         }
 
+        public void RemoveSearchParamIdToUriMapping(string searchParamUri)
+        {
+            ThrowIfNotInitialized();
+
+            _searchParamUriToId.Remove(new Uri(searchParamUri));
+        }
+
         public byte GetCompartmentTypeId(string compartmentType)
         {
             ThrowIfNotInitialized();
